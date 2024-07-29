@@ -11,16 +11,21 @@ source:
 
 build:
   number: 0
-  noarch: python
+  skip: True  # [py<38]
   entry_points:
     - tensorboard = tensorboard.main:run_main
 
 requirements:
+  build:
+    - m2-sed # [win]
+    - sed # [unix]
   host:
-    - python >=3.8
+    - python
     - pip
+    - setuptools
+    - wheel
   run:
-    - python >=3.8
+    - python
     - six >=1.9
     - numpy >=1.12.0
     - protobuf >=3.19.6,!=4.24.0,<5.0.0
@@ -41,10 +46,13 @@ test:
     - pip check
 
 about:
-  home: https://github.com/tensorflow/tensorboard
+  home: https://www.tensorflow.org/tensorboard
   license: Apache-2.0
-  license_file: {{ environ["RECIPE_DIR"] }}/LICENSE
+  license_family: Apache
+  license_file: LICENSE
   summary: TensorFlow's Visualization Toolkit
+  dev_url: https://github.com/tensorflow/tensorboard
+  doc_url: https://www.tensorflow.org/tensorboard/get_started
 
 extra:
   recipe-maintainers:
