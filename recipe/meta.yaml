@@ -11,7 +11,7 @@ source:
 
 build:
   number: 0
-  skip: True  # [py<38]
+  skip: True  # [py<39]
   entry_points:
     - tensorboard = tensorboard.main:run_main
 
