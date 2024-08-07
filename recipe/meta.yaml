@@ -1,63 +1,67 @@
-{% set version = "1.8.0" %}
+{% set name = "tensorboard" %}
+{% set version = "2.17.0" %}
 
 package:
-  name: tensorboard
+  name: {{ name|lower }}
   version: {{ version }}
 
 source:
-  fn: tensorflow-{{ version }}.tar.gz                                          # [unix]
-  url: https://github.com/tensorflow/tensorboard/archive/{{ version }}.tar.gz  # [unix]
-  sha256: 9483087bafa68420c846c6fc0be8688c4922f1fc2fa4c1add9c278cf014c9846     # [unix]
-
-  # Rename this to dummy since we don't want CB to extract it
-  fn: tensorboard-{{ version }}-py3-none-any.whl.dummy                                        # [win]
-  url: https://pypi.io/packages/py3/t/tensorboard/tensorboard-{{ version }}-py3-none-any.whl  # [win]
-  sha256: 7776cc8bcfd0d07cd106e9e86c011ab8eca38c97b57f5433b9f0fd6bbf31a36e                    # [win]
+  url: https://pypi.io/packages/py3/t/tensorboard/tensorboard-{{ version }}-py3-none-any.whl
+  sha256: 859a499a9b1fb68a058858964486627100b71fcb21646861c61d31846a6478fb
 
 build:
   number: 0
-  skip: True  # [not x86_64]
-  skip: True  # [win and vc<14]
-  # Make sure there is no tensorboard entry point in the tensorflow-{gpu-,}base
-  # packages as it conflicts with a file in this package.
+  skip: True  # [py<39]
   entry_points:
     - tensorboard = tensorboard.main:run_main
 
 requirements:
   build:
-    - {{ compiler('c') }}
-    - {{ compiler('cxx') }}
+    - m2-sed # [win]
+    - sed # [unix]
   host:
-    # Not using bazel on Windows due to issue with long paths
-    # The package contents are not OS specific anyway
-    - bazel >=0.9.0  # [unix]
     - python
+    - pip
     - setuptools
-    - pip            # [win]
+    - wheel
   run:
     - python
-    - werkzeug >=0.11.10
-    - six >=1.10.0
-    - protobuf >=3.4.0
-    - numpy >=1.12
+    - six >=1.9
+    - numpy >=1.12.0
+    - protobuf >=3.19.6,!=4.24.0,<5.0.0
+    - werkzeug >=1.0.1
     - markdown >=2.6.8
-    - html5lib ==0.9999999  # 7 nines
-    - futures >=3.1.1  # [py27]
-    - bleach ==1.5.0
+    - absl-py >=0.4
+    - grpcio >=1.48.2
+    - setuptools >=41.0.0
+    - tensorboard-data-server >=0.7.0,<0.8.0
 
 test:
   requires:
-    - tensorflow-base >=1.8.0,<1.9.0
+    - pip
   imports:
     - tensorboard
   commands:
-    # sets an exit value of 1
-    # https://github.com/tensorflow/tensorboard/issues/1007
-    - tensorboard --help || true  # [unix]
+    - tensorboard -h
+    - pip check
 
 about:
-  home: http://tensorflow.org/
-  license: Apache 2.0
+  home: https://www.tensorflow.org/tensorboard
+  license: Apache-2.0
   license_family: Apache
-  summary: TensorBoard lets you watch Tensors Flow
+  license_file: LICENSE
+  summary: TensorFlow's Visualization Toolkit
+  description: |
+    TensorBoard is a suite of web applications for inspecting and understanding your TensorFlow runs and graphs.
   dev_url: https://github.com/tensorflow/tensorboard
+  doc_url: https://www.tensorflow.org/tensorboard/get_started
+
+extra:
+  recipe-maintainers:
+    - sdvillal
+    - gilbertfrancois
+    - farhantejani
+    - mdraw
+    - jschueller
+    - xhochy
+    - ngam
