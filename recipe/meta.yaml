@@ -10,7 +10,7 @@ source:
   sha256: 5e71b98663a641a7ce8a6e70b0be8e1a4c0c45d48760b076383ac4755c35b9a0
 
 build:
-  number: 0
+  number: 1
   skip: True  # [py<39]
   entry_points:
     - tensorboard = tensorboard.main:run_main
