@@ -1,17 +1,20 @@
 set -ex
 
-source gen-bazel-toolchain
+if [[ "${target_platform}" == osx-* ]]; then
+    source gen-bazel-toolchain
+    echo "build --crosstool_top=//bazel_toolchain:toolchain" >> .bazelrc
+fi
 
 cat >> .bazelrc <<EOF
-
-build --crosstool_top=//bazel_toolchain:toolchain
 build --logging=6
 build --verbose_failures
-build --toolchain_resolution_debug
 build --define=PREFIX=${PREFIX}
 build --define=PROTOBUF_INCLUDE_PATH=${PREFIX}/include
-build --local_cpu_resources=${CPU_COUNT}"
+build --local_cpu_resources=${CPU_COUNT}
 EOF
+
+bazel clean --expunge
+bazel shutdown
 
 bazel build //tensorboard/pip_package:build_pip_package
 
@@ -30,8 +33,13 @@ touch tensorboard/_vendor/__init__.py
 cp -LR "${SRC_DIR}/bazel-bin/tensorboard/pip_package/build_pip_package.runfiles/org_mozilla_bleach/bleach" tensorboard/_vendor/
 cp -LR "${SRC_DIR}/bazel-bin/tensorboard/pip_package/build_pip_package.runfiles/org_pythonhosted_webencodings/webencodings" tensorboard/_vendor/
 
-# Patch imports to use vendored packages
-find tensorboard -name '*.py' -exec sed -i '' -e '
+if [[ "${target_platform}" == osx-* ]]; then
+    sedi="sed -i ''"
+else
+    sedi="sed -i"
+fi
+
+find tensorboard -name '*.py' -exec ${sedi} -e '
   s/^import bleach$/from tensorboard._vendor import bleach/
   s/^from bleach/from tensorboard._vendor.bleach/
   s/^import webencodings$/from tensorboard._vendor import webencodings/
@@ -54,23 +62,13 @@ recursive-include tensorboard/_vendor *.html
 recursive-include tensorboard/_vendor *.css
 MANIFEST_EOF
 
-# Remove the Bazel wrapper script
-rm -f tensorboard/tensorboard
+rm -f tensorboard/tensorboard  # bazel py_binary sh wrapper
+chmod -x LICENSE  # bazel symlinks confuse cp
+find . -name __init__.py -exec chmod -x {} +  # which goes for all genfiles
 
-# Fix permissions
-chmod -x LICENSE
-find . -name __init__.py -exec chmod -x {} +
-
-# Apply version modifications  
-sed -i '' '/^import tensorboard\.version$/d' setup.py
-sed -i '' "s/version=tensorboard\.version\.VERSION\.replace(\"-\", \"\"),/version=\"${PKG_VERSION}\",/" setup.py
-
-# Ensure setup.py uses find_packages to include _vendor
-# Check if setup.py uses packages= and make sure it includes _vendor
-if ! grep -q "find_packages" setup.py; then
-    # If not using find_packages, we need to ensure packages list includes tensorboard._vendor
-    sed -i '' "s/packages=\[/packages=['tensorboard._vendor', 'tensorboard._vendor.bleach', 'tensorboard._vendor.webencodings', /" setup.py
-fi
+# Get rid of cyclic import, and set the version
+${sedi} '/^import tensorboard\.version$/d' setup.py
+${sedi} "s/version=tensorboard\.version\.VERSION\.replace(\"-\", \"\"),/version=\"${PKG_VERSION}\",/" setup.py
 
 # Install using conda's Python
 $PYTHON setup.py install --single-version-externally-managed --record=record.txt

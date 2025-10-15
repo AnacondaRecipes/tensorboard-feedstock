@@ -23,7 +23,10 @@ requirements:
     - {{ compiler('c') }}
     - {{ compiler('cxx') }}
     - bazel
-    - bazel-toolchain  # [unix]
+    - bazel-toolchain  # [osx]
+    - git  # Needed by Bazel for yarn/npm operations
+    - nodejs >=18  # Needed for building frontend
+    - yarn  # Needed by Bazel for JS dependencies
   host:
     - python
     - pip
