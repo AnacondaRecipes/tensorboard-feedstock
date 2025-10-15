@@ -2,12 +2,12 @@
 {% set version = "2.20.0" %}
 
 package:
-  name: {{ name|lower }}
+  name: {{ name }}
   version: {{ version }}
 
 source:
-  url: https://pypi.io/packages/py3/t/tensorboard/tensorboard-{{ version }}-py3-none-any.whl
-  sha256: 9dc9f978cb84c0723acf9a345d96c184f0293d18f166bb8d59ee098e6cfaaba6
+  url: https://github.com/tensorflow/tensorboard/archive/refs/tags/2.20.0.tar.gz
+  sha256: 7a3b3bb111a9734fd051bd34e763ae90b0a76a2549e74ec75ebcba752ba5a21a
 
 build:
   number: 0
@@ -19,11 +19,20 @@ requirements:
   build:
     - msys2-sed # [win]
     - sed # [unix]
+    - {{ stdlib('c') }}
+    - {{ compiler('c') }}
+    - {{ compiler('cxx') }}
+    - bazel
+    - bazel-toolchain  # [unix]
   host:
     - python
     - pip
     - setuptools
     - wheel
+    - protobuf {{ libprotobuf }}
+    - absl-py
+    - grpcio {{ libgrpc }}
+    - numpy {{ numpy }}
   run:
     - python
     - absl-py >=0.4
