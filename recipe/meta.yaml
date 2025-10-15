@@ -1,13 +1,13 @@
 {% set name = "tensorboard" %}
-{% set version = "2.19.0" %}
+{% set version = "2.20.0" %}
 
 package:
-  name: {{ name|lower }}
+  name: {{ name }}
   version: {{ version }}
 
 source:
-  url: https://pypi.io/packages/py3/t/tensorboard/tensorboard-{{ version }}-py3-none-any.whl
-  sha256: 5e71b98663a641a7ce8a6e70b0be8e1a4c0c45d48760b076383ac4755c35b9a0
+  url: https://github.com/tensorflow/tensorboard/archive/refs/tags/2.20.0.tar.gz
+  sha256: 7a3b3bb111a9734fd051bd34e763ae90b0a76a2549e74ec75ebcba752ba5a21a
 
 build:
   number: 0
@@ -19,23 +19,36 @@ requirements:
   build:
     - m2-sed # [win]
     - sed # [unix]
+    - {{ stdlib('c') }}
+    - {{ compiler('c') }}
+    - {{ compiler('cxx') }}
+    - bazel 6.5.0
+    - bazel-toolchain  # [osx]
+    - git  # Needed by Bazel for yarn/npm operations
+    - nodejs >=18  # Needed for building frontend
+    - yarn  # Needed by Bazel for JS dependencies
   host:
     - python
     - pip
     - setuptools
     - wheel
+    - protobuf {{ libprotobuf }}
+    - absl-py
+    - grpcio {{ libgrpc }}
+    - numpy {{ numpy }}
   run:
     - python
-    - six >1.9
-    - numpy >=1.12.0
-    - protobuf >=3.19.6,!=4.24.0
-    - packaging
-    - werkzeug >=1.0.1
-    - markdown >=2.6.8
     - absl-py >=0.4
     - grpcio >=1.48.2
+    - markdown >=2.6.8
+    - numpy >=1.12.0
+    - packaging
+    - pillow
+    - protobuf >=3.19.6,!=4.24.0
     - setuptools >=41.0.0
+    - six >1.9
     - tensorboard-data-server >=0.7.0,<0.8.0
+    - werkzeug >=1.0.1    
 
 test:
   requires:
