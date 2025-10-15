@@ -33,18 +33,13 @@ touch tensorboard/_vendor/__init__.py
 cp -LR "${SRC_DIR}/bazel-bin/tensorboard/pip_package/build_pip_package.runfiles/org_mozilla_bleach/bleach" tensorboard/_vendor/
 cp -LR "${SRC_DIR}/bazel-bin/tensorboard/pip_package/build_pip_package.runfiles/org_pythonhosted_webencodings/webencodings" tensorboard/_vendor/
 
-if [[ "${target_platform}" == osx-* ]]; then
-    sedi="sed -i ''"
-else
-    sedi="sed -i"
-fi
-
-find tensorboard -name '*.py' -exec ${sedi} -e '
+find tensorboard -name '*.py' -exec sed -i.bak -e '
   s/^import bleach$/from tensorboard._vendor import bleach/
   s/^from bleach/from tensorboard._vendor.bleach/
   s/^import webencodings$/from tensorboard._vendor import webencodings/
   s/^from webencodings/from tensorboard._vendor.webencodings/
 ' {} +
+find tensorboard -name '*.py.bak' -delete
 
 # Move the pip_package files to the root
 mv -f tensorboard/pip_package/LICENSE .
@@ -67,8 +62,9 @@ chmod -x LICENSE  # bazel symlinks confuse cp
 find . -name __init__.py -exec chmod -x {} +  # which goes for all genfiles
 
 # Get rid of cyclic import, and set the version
-${sedi} '/^import tensorboard\.version$/d' setup.py
-${sedi} "s/version=tensorboard\.version\.VERSION\.replace(\"-\", \"\"),/version=\"${PKG_VERSION}\",/" setup.py
+sed -i.bak '/^import tensorboard\.version$/d' setup.py
+sed -i.bak "s/version=tensorboard\.version\.VERSION\.replace(\"-\", \"\"),/version=\"${PKG_VERSION}\",/" setup.py
+rm -f setup.py.bak
 
 # Install using conda's Python
 $PYTHON setup.py install --single-version-externally-managed --record=record.txt
