@@ -22,7 +22,7 @@ requirements:
     - {{ stdlib('c') }}
     - {{ compiler('c') }}
     - {{ compiler('cxx') }}
-    - bazel
+    - bazel 6.5.0
     - bazel-toolchain  # [osx]
     - git  # Needed by Bazel for yarn/npm operations
     - nodejs >=18  # Needed for building frontend
