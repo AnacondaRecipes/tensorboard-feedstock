@@ -17,7 +17,7 @@ build:
 
 requirements:
   build:
-    - msys2-sed # [win]
+    - m2-sed # [win]
     - sed # [unix]
     - {{ stdlib('c') }}
     - {{ compiler('c') }}
