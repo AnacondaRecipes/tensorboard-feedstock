@@ -10,7 +10,7 @@ source:
   sha256: 9dc9f978cb84c0723acf9a345d96c184f0293d18f166bb8d59ee098e6cfaaba6
 
 build:
-  number: 0
+  number: 1
   skip: True  # [py<39]
   entry_points:
     - tensorboard = tensorboard.main:run_main
@@ -19,7 +19,7 @@ requirements:
   host:
     - python
     - pip
-    - setuptools
+    - setuptools <82
     - wheel
   run:
     - python
@@ -33,7 +33,10 @@ requirements:
     - setuptools >=41.0.0
     - six >1.9
     - tensorboard-data-server >=0.7.0,<0.8.0
-    - werkzeug >=1.0.1    
+    - werkzeug >=1.0.1
+  run_constrained:
+    # ModuleNotFoundError: No module named 'pkg_resources'
+    - setuptools <82
 
 test:
   requires:
